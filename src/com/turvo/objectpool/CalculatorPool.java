@@ -1,7 +1,6 @@
 package com.turvo.objectpool;
 
 import com.turvo.objectpool.exception.NoSuchObjectExistsException;
-import com.turvo.objectpool.exception.ObjectPoolSizeOutOfBoundsException;
 
 /**
  * Implementation of ObjectPoolService for Calculator objects.
@@ -15,14 +14,10 @@ public class CalculatorPool extends ObjectPoolService<Calculator> {
     /**
      * Creates a Calculator object and adds it to the pool.
      *
-     * @throws ObjectPoolSizeOutOfBoundsException when pool is already full
      * @throws InterruptedException
      */
     @Override
-    public Calculator createObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
-        if (maxIdle() == objectPool.size()) { //pool is already full
-            throw new ObjectPoolSizeOutOfBoundsException("maxIdle");
-        }
+    public Calculator createObject() throws InterruptedException {
         Calculator calculator = new Calculator(created() + 1);
         objectPool.put(calculator);
         size++;
@@ -34,14 +29,10 @@ public class CalculatorPool extends ObjectPoolService<Calculator> {
      * Removes the specified object from pool.
      *
      * @param calculator
-     * @throws ObjectPoolSizeOutOfBoundsException when the pool is empty
-     * @throws NoSuchObjectExistsException        when the desired object to remove is not found
+     * @throws NoSuchObjectExistsException when the desired object to remove is not found
      */
     @Override
-    public void destroyObject(Calculator calculator) throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException {
-        if (minIdle() == objectPool.size()) { //pool is empty. Nothing to destroy
-            throw new ObjectPoolSizeOutOfBoundsException("minIdle");
-        }
+    public void destroyObject(Calculator calculator) throws NoSuchObjectExistsException {
         boolean isObjectRemoved = objectPool.remove(calculator);
         if (!isObjectRemoved) {
             throw new NoSuchObjectExistsException();
@@ -53,21 +44,19 @@ public class CalculatorPool extends ObjectPoolService<Calculator> {
      * Waits for the head element to be created when there is no object
      *
      * @return
-     * @throws ObjectPoolSizeOutOfBoundsException
      */
     @Override
-    public Calculator borrowObject() throws ObjectPoolSizeOutOfBoundsException {
-        if (minIdle() == objectPool.size()) { //pool is empty. Nothing to borrow
-            throw new ObjectPoolSizeOutOfBoundsException("minIdle");
-        }
+    public Calculator borrowObject() {
         return objectPool.poll();
     }
 
+    /**
+     * Adds the object back to the object pool
+     *
+     * @param object
+     */
     @Override
-    public void releaseObject(Calculator object) throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
-        if (maxIdle() == objectPool.size()) { //pool is full, Cannot put any borrowed object back.
-            throw new ObjectPoolSizeOutOfBoundsException("maxIdle");
-        }
+    public void releaseObject(Calculator object) throws InterruptedException {
         objectPool.put(object);
         size++;
     }

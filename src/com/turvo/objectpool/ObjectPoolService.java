@@ -1,7 +1,6 @@
 package com.turvo.objectpool;
 
 import com.turvo.objectpool.exception.NoSuchObjectExistsException;
-import com.turvo.objectpool.exception.ObjectPoolSizeOutOfBoundsException;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -12,10 +11,21 @@ public abstract class ObjectPoolService<T> implements ObjectPool<T> {
     protected LinkedBlockingQueue<T> objectPool;
 
     public ObjectPoolService(final int minIdle, final int maxIdle) {
+        if(areBoundariesValid(minIdle, maxIdle)){
         this.minIdle = minIdle;
         this.maxIdle = maxIdle;
         this.size = 0;
         objectPool = new LinkedBlockingQueue<T>(maxIdle);
+        }else{
+            throw new IllegalArgumentException("Wrong boundaries passed...");
+        }
+    }
+
+    private boolean areBoundariesValid(int minIdle, int maxIdle) {
+        if((minIdle <= 0 || maxIdle <= 0) || (minIdle > maxIdle)){
+            return false;
+        }
+        return true;
     }
 
 
@@ -39,13 +49,13 @@ public abstract class ObjectPoolService<T> implements ObjectPool<T> {
         return objectPool.size();
     }
 
-    public abstract T createObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException;
-    public abstract void destroyObject(T t) throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException;
-    public abstract T borrowObject() throws ObjectPoolSizeOutOfBoundsException;
-    public abstract void releaseObject(T t) throws ObjectPoolSizeOutOfBoundsException, InterruptedException;
+    public abstract T createObject() throws  InterruptedException;
+    public abstract void destroyObject(T t) throws  NoSuchObjectExistsException;
+    public abstract T borrowObject() ;
+    public abstract void releaseObject(T t) throws  InterruptedException;
 
 
-    public void populatePool() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
+    public void populatePool() throws InterruptedException {
         while (availableActive() < minIdle() && created() < maxIdle()) {
             createObject();
         }
