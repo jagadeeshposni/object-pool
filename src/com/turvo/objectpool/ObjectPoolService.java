@@ -4,20 +4,18 @@ import com.turvo.objectpool.exception.NoSuchObjectExistsException;
 import com.turvo.objectpool.exception.ObjectPoolSizeOutOfBoundsException;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public abstract class ObjectPoolService<T> implements ObjectPool<T> {
-    private final int minIdle;
-    private final int maxIdle;
-    protected int size;
-    private boolean shutdown = false;
-    protected LinkedBlockingQueue<T> objectpool;
+    private final int minIdle;//Minimum number of objects present in the pool at any given point of time
+    private final int maxIdle;//Maximum number of objects that a pool can hold at any given point of time
+    protected int size;//Capacity of the pool. Only increments as objects are added to pool. Maximum value is maxIdle. Cannot be decremented.
+    protected LinkedBlockingQueue<T> objectPool;
 
     public ObjectPoolService(final int minIdle, final int maxIdle) {
         this.minIdle = minIdle;
         this.maxIdle = maxIdle;
         this.size = 0;
-        initialize(minIdle, maxIdle);
+        objectPool = new LinkedBlockingQueue<T>(maxIdle);
     }
 
 
@@ -33,73 +31,23 @@ public abstract class ObjectPoolService<T> implements ObjectPool<T> {
         return maxIdle;
     }
 
-    //public long expiryInterval() {}
     public int created() {
         return size;
     }
 
-    public int borrowed() {
-        return size - objectpool.size();
-    }
-
     public int availableActive() {
-        return objectpool.size();
+        return objectPool.size();
     }
 
-//    public T borrowObject() {
-//        if (!shutdown) {
-////            populatePool();
-//            return objectpool.poll();
-//        } else return null;
-//    }
-//
-//    public void releaseObject(T object) {
-//        objectpool.add(object);
-//        size++;
-//        if (shutdown && availableActive() == created()) {
-//            objectpool.clear();
-//        }
-//    }
-
-    public void shutdown() {
-        shutdown = true;
-    }
-
-    public abstract T createObject() throws ObjectPoolSizeOutOfBoundsException;
+    public abstract T createObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException;
     public abstract void destroyObject(T t) throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException;
     public abstract T borrowObject() throws ObjectPoolSizeOutOfBoundsException;
-    public abstract void releaseObject(T t) throws ObjectPoolSizeOutOfBoundsException;
+    public abstract void releaseObject(T t) throws ObjectPoolSizeOutOfBoundsException, InterruptedException;
 
-    public void initialize(final int minIdle, final int maxIdle) {
-        objectpool = new LinkedBlockingQueue<T>(maxIdle);
-//        for (int i = 0; i < minIdle; i++) {
-//            objectpool.add(createObject());
-//            size++;
-//        }
-//        size = minIdle;
-    }
 
-    public void populatePool() throws ObjectPoolSizeOutOfBoundsException {
+    public void populatePool() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         while (availableActive() < minIdle() && created() < maxIdle()) {
             createObject();
         }
     }
-
-    //    public T tryBorrowObject(long timeout) throws InterruptedException {
-//        if (!shutdown) {
-////            populatePool();
-//            return objectpool.poll(timeout, TimeUnit.MILLISECONDS);
-//        } else return null;
-//    }
-//
-
-
-
-//    public int availablePassive() {
-//        return maxIdle() - created();
-//    }
-//
-//    public int availableTotal() {
-//        return maxIdle - borrowed();
-//    }
 }

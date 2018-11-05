@@ -26,14 +26,14 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testCreateObject() throws ObjectPoolSizeOutOfBoundsException {
+    void testCreateObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.createObject();
         Assertions.assertEquals(1,calcPool.availableActive());
     }
 
     @Test
-    void testDestroyObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException {
+    void testDestroyObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         Calculator createdObj = calcPool.createObject();
         calcPool.destroyObject(createdObj);
@@ -42,7 +42,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testDestroyNonExistingObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException {
+    void testDestroyNonExistingObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         Calculator createdObj = calcPool.createObject();
         Assertions.assertThrows(NoSuchObjectExistsException.class , () -> {
@@ -53,7 +53,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testSamplePopulatePoll() throws ObjectPoolSizeOutOfBoundsException {
+    void testSamplePopulatePoll() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         Assertions.assertEquals(0, calcPool.availableActive());
         calcPool.populatePool();
@@ -61,7 +61,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testBorrowOneObject() throws ObjectPoolSizeOutOfBoundsException {
+    void testBorrowOneObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.populatePool();
         Assertions.assertEquals(5, calcPool.availableActive());
@@ -73,7 +73,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testReleaseOneObject() throws ObjectPoolSizeOutOfBoundsException {
+    void testReleaseOneObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         Assertions.assertEquals(0, calcPool.availableActive());
         Assertions.assertEquals(0, calcPool.size());
@@ -83,7 +83,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void testBorrowReleaseObjectsFromPool() throws ObjectPoolSizeOutOfBoundsException {
+    void testBorrowReleaseObjectsFromPool() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.populatePool();
 
@@ -106,7 +106,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void raisesMinIdleExceptionOnBorrowObject() throws ObjectPoolSizeOutOfBoundsException {
+    void raisesMinIdleExceptionOnBorrowObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.populatePool();
         Assertions.assertThrows(ObjectPoolSizeOutOfBoundsException.class, () -> {
@@ -115,7 +115,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void raisesMinIdleExceptionOnDestroyObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException {
+    void raisesMinIdleExceptionOnDestroyObject() throws ObjectPoolSizeOutOfBoundsException, NoSuchObjectExistsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.populatePool();
         Calculator createdObj = calcPool.createObject();
@@ -126,7 +126,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void raisesMaxIdleException() throws ObjectPoolSizeOutOfBoundsException {
+    void raisesMaxIdleException() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(5, 10);
         calcPool.populatePool();
         calcPool.createObject();
@@ -140,7 +140,7 @@ class CalculatorPoolTest {
     }
 
     @Test
-    void raisesMaxIdleExceptionOnReleaseObject() throws ObjectPoolSizeOutOfBoundsException{
+    void raisesMaxIdleExceptionOnReleaseObject() throws ObjectPoolSizeOutOfBoundsException, InterruptedException {
         calcPool = new CalculatorPool(0,5);
         calcPool.createObject();
         calcPool.createObject();
